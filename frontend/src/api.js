@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://campusfind-se-49-production.up.railway.app';
 
 export const fetchItems = async (query = '') => {
   const response = await fetch(`${API_URL}/items${query}`);
