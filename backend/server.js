@@ -13,7 +13,9 @@ app.use(cors({
   origin: CLIENT_URL,
 }));
 
-// Routes (To be implemented)
+// Routes
+app.use('/api/items', require('./routes/itemRoutes'));
+
 app.get('/', (req, res) => {
   res.send('CampusFind Backend API is running');
 });
