@@ -1,3 +1,27 @@
+const dns = require('dns');
+// Set public DNS servers to resolve SRV records properly across local/campus networks
+dns.setServers(['8.8.8.8', '1.1.1.1']);
+const origLookup = dns.lookup;
+dns.lookup = (hostname, opts, cb) => {
+  if (typeof opts === 'function') {
+    cb = opts;
+    opts = {};
+  }
+  origLookup(hostname, opts, (err, addr, family) => {
+    if (err && (err.code === 'ENOTFOUND' || err.code === 'ECONNREFUSED')) {
+      dns.resolve4(hostname, (rErr, addrs) => {
+        if (!rErr && addrs && addrs.length > 0) {
+          if (opts && opts.all) return cb(null, addrs.map(a => ({ address: a, family: 4 })));
+          return cb(null, addrs[0], 4);
+        }
+        cb(err, addr, family);
+      });
+    } else {
+      cb(err, addr, family);
+    }
+  });
+};
+
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');

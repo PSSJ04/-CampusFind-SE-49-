@@ -9,7 +9,7 @@ import './index.css';
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-slate-950">
+      <div className="min-h-screen bg-slate-950 text-slate-100">
         <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />

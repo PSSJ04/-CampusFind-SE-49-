@@ -38,8 +38,9 @@ const getItems = async (req, res) => {
     
     if (type) query.type = type;
     if (location) query.location = location;
-    if (search) {
-      query.name = { $regex: search, $options: 'i' }; // Case-insensitive search
+    if (search && search.trim() !== '') {
+      const sanitized = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.name = { $regex: sanitized, $options: 'i' }; // Case-insensitive search
     }
 
     const items = await Item.find(query).sort({ createdAt: -1 }); // Newest first
