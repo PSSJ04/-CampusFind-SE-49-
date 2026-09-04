@@ -1,5 +1,27 @@
 import React, { useState } from 'react';
 import { createItem } from '../api';
+import { CheckCircle, AlertCircle, Loader2, MapPin, Send } from 'lucide-react';
+
+const SLIIT_LOCATIONS = [
+  'Main Library',
+  'Computing Faculty',
+  'Engineering Faculty',
+  'Business Faculty',
+  'Humanities & Sciences Faculty',
+  'Cafeteria',
+  'Student Center',
+  'Auditorium',
+  'Ground Floor Lobby',
+  'Parking Area',
+  'Sports Complex',
+  'Lab 1 - Computing',
+  'Lab 2 - Computing',
+  'Lab 3 - Computing',
+  'Lecture Hall A',
+  'Lecture Hall B',
+  'Lecture Hall C',
+  'Other',
+];
 
 const ReportForm = () => {
   const [formData, setFormData] = useState({
@@ -11,39 +33,47 @@ const ReportForm = () => {
     imageUrl: '',
   });
 
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    // Clear individual field error on change
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: '' });
+    }
   };
 
   const validateForm = () => {
-    if (!formData.name.trim()) return 'Name of the item is required.';
-    if (!formData.location.trim()) return 'Location is required.';
-    if (!formData.description.trim()) return 'Description is required.';
-    if (!formData.contactInfo.trim()) return 'Contact Information is required.';
-    return null;
+    const newErrors = {};
+    if (!formData.name.trim()) newErrors.name = 'Item name is required.';
+    if (formData.name.trim().length > 0 && formData.name.trim().length < 2) newErrors.name = 'Item name must be at least 2 characters.';
+    if (!formData.location) newErrors.location = 'Please select a location.';
+    if (!formData.description.trim()) newErrors.description = 'A description is required to help identify the item.';
+    if (formData.description.trim().length > 0 && formData.description.trim().length < 10) newErrors.description = 'Description must be at least 10 characters.';
+    if (!formData.contactInfo.trim()) newErrors.contactInfo = 'Contact info is required so the owner/finder can reach you.';
+    if (formData.imageUrl && !formData.imageUrl.match(/^https?:\/\/.+/)) newErrors.imageUrl = 'Please enter a valid URL starting with http:// or https://';
+    return newErrors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setSuccess('');
-    
-    const validationError = validateForm();
-    if (validationError) {
-      setError(validationError);
+
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
 
+    setErrors({});
     setLoading(true);
     try {
-      // Set date dynamically when submitting
       const dataToSubmit = { ...formData, date: new Date().toISOString() };
       await createItem(dataToSubmit);
-      setSuccess(`Success! Your ${formData.type.toLowerCase()} item has been reported.`);
+      setSuccess(`Your ${formData.type.toLowerCase()} item "${formData.name}" has been reported successfully!`);
       setFormData({
         type: 'Lost',
         name: '',
@@ -53,128 +83,189 @@ const ReportForm = () => {
         imageUrl: '',
       });
     } catch (err) {
-      setError(err.message || 'Failed to submit report. Please try again.');
+      setErrors({ submit: err.message || 'Failed to submit report. Please try again.' });
     } finally {
       setLoading(false);
     }
   };
 
+  const hasErrors = Object.keys(errors).length > 0;
+
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md mt-10">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Report Lost or Found Item</h2>
-      
-      {error && (
-        <div className="bg-red-50 text-red-700 p-4 rounded-md mb-6">
-          {error}
+    <div className="glass-card rounded-2xl p-6 sm:p-8">
+      <div className="flex items-center gap-3 mb-8">
+        <div className="w-10 h-10 rounded-xl bg-indigo-600/20 flex items-center justify-center">
+          <MapPin size={20} className="text-indigo-400" />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-white">Report Lost or Found Item</h2>
+          <p className="text-sm text-slate-500">Fill in the details below to create a report.</p>
+        </div>
+      </div>
+
+      {/* Global error */}
+      {errors.submit && (
+        <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl mb-6">
+          <AlertCircle size={20} className="shrink-0" />
+          <span className="text-sm">{errors.submit}</span>
         </div>
       )}
-      
+
+      {/* Success message */}
       {success && (
-        <div className="bg-green-50 text-green-700 p-4 rounded-md mb-6">
-          {success}
+        <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-4 rounded-xl mb-6">
+          <CheckCircle size={20} className="shrink-0" />
+          <span className="text-sm">{success}</span>
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Report Type Toggle */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Report Type</label>
-          <div className="flex gap-4">
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="type"
-                value="Lost"
-                checked={formData.type === 'Lost'}
-                onChange={handleChange}
-                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
-              />
-              <span className="ml-2 text-sm text-gray-700">Lost Item</span>
-            </label>
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="type"
-                value="Found"
-                checked={formData.type === 'Found'}
-                onChange={handleChange}
-                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
-              />
-              <span className="ml-2 text-sm text-gray-700">Found Item</span>
-            </label>
+          <label className="block text-sm font-medium text-slate-300 mb-3">Report Type</label>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, type: 'Lost' })}
+              className={`py-3 rounded-xl text-sm font-semibold transition-all duration-300 border ${
+                formData.type === 'Lost'
+                  ? 'bg-red-500/15 border-red-500/40 text-red-400 glow-indigo'
+                  : 'bg-slate-800/50 border-slate-700/50 text-slate-400 hover:border-slate-600'
+              }`}
+            >
+              🔍 Lost Item
+            </button>
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, type: 'Found' })}
+              className={`py-3 rounded-xl text-sm font-semibold transition-all duration-300 border ${
+                formData.type === 'Found'
+                  ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400 glow-emerald'
+                  : 'bg-slate-800/50 border-slate-700/50 text-slate-400 hover:border-slate-600'
+              }`}
+            >
+              📦 Found Item
+            </button>
           </div>
         </div>
 
+        {/* Item Name */}
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">Item Name</label>
+          <label htmlFor="name" className="block text-sm font-medium text-slate-300 mb-1.5">Item Name</label>
           <input
             type="text"
             name="name"
             id="name"
             value={formData.name}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
-            placeholder="e.g. Black Leather Wallet"
+            className={`w-full bg-slate-800/60 border rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 transition-all duration-300 ${
+              errors.name ? 'border-red-500/50' : 'border-slate-700/50 hover:border-slate-600'
+            }`}
+            placeholder="e.g. Black Leather Wallet, Student ID Card"
           />
+          {errors.name && <p className="text-red-400 text-xs mt-1.5">{errors.name}</p>}
         </div>
 
+        {/* Location Dropdown */}
         <div>
-          <label htmlFor="location" className="block text-sm font-medium text-gray-700">Location</label>
-          <input
-            type="text"
+          <label htmlFor="location" className="block text-sm font-medium text-slate-300 mb-1.5">Location at SLIIT</label>
+          <select
             name="location"
             id="location"
             value={formData.location}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
-            placeholder="e.g. Main Library, 2nd Floor"
-          />
+            className={`w-full bg-slate-800/60 border rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 transition-all duration-300 appearance-none ${
+              errors.location ? 'border-red-500/50' : 'border-slate-700/50 hover:border-slate-600'
+            } ${!formData.location ? 'text-slate-500' : ''}`}
+          >
+            <option value="">Select a location...</option>
+            {SLIIT_LOCATIONS.map((loc) => (
+              <option key={loc} value={loc}>{loc}</option>
+            ))}
+          </select>
+          {errors.location && <p className="text-red-400 text-xs mt-1.5">{errors.location}</p>}
         </div>
 
+        {/* Description */}
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
+          <label htmlFor="description" className="block text-sm font-medium text-slate-300 mb-1.5">Description</label>
           <textarea
             name="description"
             id="description"
-            rows={3}
+            rows={4}
             value={formData.description}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
-            placeholder="Please provide unique details to identify the item"
+            className={`w-full bg-slate-800/60 border rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 transition-all duration-300 resize-none ${
+              errors.description ? 'border-red-500/50' : 'border-slate-700/50 hover:border-slate-600'
+            }`}
+            placeholder="Provide unique details to help identify the item (color, brand, any distinguishing marks)..."
           />
+          {errors.description && <p className="text-red-400 text-xs mt-1.5">{errors.description}</p>}
         </div>
 
+        {/* Image URL */}
         <div>
-          <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700">Image URL (Optional)</label>
+          <label htmlFor="imageUrl" className="block text-sm font-medium text-slate-300 mb-1.5">
+            Image URL <span className="text-slate-600">(Optional)</span>
+          </label>
           <input
-            type="url"
+            type="text"
             name="imageUrl"
             id="imageUrl"
             value={formData.imageUrl}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+            className={`w-full bg-slate-800/60 border rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 transition-all duration-300 ${
+              errors.imageUrl ? 'border-red-500/50' : 'border-slate-700/50 hover:border-slate-600'
+            }`}
             placeholder="https://example.com/image.jpg"
           />
+          {errors.imageUrl && <p className="text-red-400 text-xs mt-1.5">{errors.imageUrl}</p>}
+          {formData.imageUrl && !errors.imageUrl && formData.imageUrl.match(/^https?:\/\/.+/) && (
+            <div className="mt-3 rounded-xl overflow-hidden border border-slate-700/50">
+              <img
+                src={formData.imageUrl}
+                alt="Preview"
+                className="w-full h-40 object-cover"
+                onError={(e) => { e.target.style.display = 'none'; }}
+              />
+            </div>
+          )}
         </div>
 
+        {/* Contact Info */}
         <div>
-          <label htmlFor="contactInfo" className="block text-sm font-medium text-gray-700">Contact Information</label>
+          <label htmlFor="contactInfo" className="block text-sm font-medium text-slate-300 mb-1.5">Contact Information</label>
           <input
             type="text"
             name="contactInfo"
             id="contactInfo"
             value={formData.contactInfo}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
-            placeholder="Email or Phone Number"
+            className={`w-full bg-slate-800/60 border rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 transition-all duration-300 ${
+              errors.contactInfo ? 'border-red-500/50' : 'border-slate-700/50 hover:border-slate-600'
+            }`}
+            placeholder="Email or phone number (e.g. nimal@sliit.lk or 077 123 4567)"
           />
+          {errors.contactInfo && <p className="text-red-400 text-xs mt-1.5">{errors.contactInfo}</p>}
         </div>
 
+        {/* Submit */}
         <button
           type="submit"
           disabled={loading}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400"
+          className="w-full flex items-center justify-center gap-2 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99]"
         >
-          {loading ? 'Submitting...' : 'Submit Report'}
+          {loading ? (
+            <>
+              <Loader2 size={18} className="animate-spin" />
+              Submitting...
+            </>
+          ) : (
+            <>
+              <Send size={18} />
+              Submit Report
+            </>
+          )}
         </button>
       </form>
     </div>
