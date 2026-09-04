@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import ItemGrid from './components/ItemGrid'
 import heroImg from './assets/hero.png'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
@@ -112,7 +113,7 @@ function App() {
           </ul>
         </div>
       </section>
-
+      <ItemGrid />
       <div className="ticks"></div>
       <section id="spacer"></section>
     </>
