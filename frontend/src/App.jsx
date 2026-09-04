@@ -2,6 +2,7 @@ import { useState } from 'react'
 import heroImg from './assets/hero.png'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
+import ItemsPage from './components/ItemsPage'
 import './App.css'
 
 function App() {
@@ -29,6 +30,10 @@ function App() {
           Count is {count}
         </button>
       </section>
+
+      <div className="ticks"></div>
+
+      <ItemsPage />
 
       <div className="ticks"></div>
 
