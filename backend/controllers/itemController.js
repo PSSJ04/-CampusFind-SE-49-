@@ -33,14 +33,18 @@ const createItem = async (req, res) => {
 // @access  Public
 const getItems = async (req, res) => {
   try {
-    const { type, location, search } = req.query;
+    const { type, location, category, search } = req.query;
     let query = {};
     
     if (type) query.type = type;
     if (location) query.location = location;
+    if (category) query.category = category;
     if (search && search.trim() !== '') {
       const sanitized = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      query.name = { $regex: sanitized, $options: 'i' }; // Case-insensitive search
+      query.$or = [
+        { name: { $regex: sanitized, $options: 'i' } },
+        { description: { $regex: sanitized, $options: 'i' } },
+      ];
     }
 
     const items = await Item.find(query).sort({ createdAt: -1 }); // Newest first
@@ -49,6 +53,7 @@ const getItems = async (req, res) => {
     res.status(500).json({ message: error.message || 'Server Error' });
   }
 };
+
 
 // @desc    Update item status
 // @route   PATCH /api/items/:id/status

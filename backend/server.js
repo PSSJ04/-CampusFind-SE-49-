@@ -51,3 +51,4 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/campusfind'
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+

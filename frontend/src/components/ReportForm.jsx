@@ -23,15 +23,28 @@ const SLIIT_LOCATIONS = [
   'Other',
 ];
 
+const CATEGORY_OPTIONS = [
+  'Electronics',
+  'Valuables',
+  'Documents',
+  'Clothing',
+  'Books/Stationery',
+  'ID Cards',
+  'Keys',
+  'Other',
+];
+
 const ReportForm = () => {
   const [formData, setFormData] = useState({
     type: 'Lost',
     name: '',
+    category: 'Other',
     location: '',
     description: '',
     contactInfo: '',
     imageUrl: '',
   });
+
 
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState('');

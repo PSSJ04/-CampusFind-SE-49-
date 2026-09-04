@@ -10,6 +10,10 @@ const SLIIT_LOCATIONS = [
   'Lecture Hall A', 'Lecture Hall B', 'Lecture Hall C', 'Other'
 ];
 
+const ITEM_CATEGORIES = [
+  'Electronics', 'Valuables', 'Documents', 'Clothing', 'Books/Stationery', 'ID Cards', 'Keys', 'Other'
+];
+
 const SearchItems = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,7 +22,8 @@ const SearchItems = () => {
   const [filters, setFilters] = useState({
     search: '',
     type: '',
-    location: ''
+    location: '',
+    category: ''
   });
 
   const loadItems = async () => {
@@ -28,6 +33,7 @@ const SearchItems = () => {
       if (filters.search) queryParams.append('search', filters.search);
       if (filters.type) queryParams.append('type', filters.type);
       if (filters.location) queryParams.append('location', filters.location);
+      if (filters.category) queryParams.append('category', filters.category);
       
       const queryStr = queryParams.toString() ? `?${queryParams.toString()}` : '';
       const data = await fetchItems(queryStr);
@@ -56,11 +62,10 @@ const SearchItems = () => {
 
   // Trigger search automatically when dropdowns change
   useEffect(() => {
-    if (filters.type !== '' || filters.location !== '') {
-      loadItems();
-    }
+    loadItems();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.type, filters.location]);
+  }, [filters.type, filters.location, filters.category]);
+
 
   const handleStatusUpdate = async (id, newStatus) => {
     try {
@@ -101,29 +106,29 @@ const SearchItems = () => {
 
         {/* Search & Filter Bar */}
         <div className="glass-card rounded-2xl p-6 mb-12">
-          <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-12 gap-4">
-            <div className="md:col-span-6 relative">
+          <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-12 gap-3">
+            <div className="md:col-span-4 relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <SearchIcon size={18} className="text-slate-500" />
               </div>
               <input
                 type="text"
-                placeholder="Search by item name..."
+                placeholder="Search by name or description..."
                 value={filters.search}
                 onChange={(e) => handleFilterChange('search', e.target.value)}
-                className="w-full bg-slate-800/60 border border-slate-700/50 rounded-xl pl-11 pr-4 py-3.5 text-sm text-white placeholder-slate-500 hover:border-slate-600 transition-all focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none"
+                className="w-full bg-slate-800/60 border border-slate-700/50 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder-slate-500 hover:border-slate-600 transition-all focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none"
               />
             </div>
             
-            <div className="md:col-span-3">
+            <div className="md:col-span-2">
               <select
                 value={filters.type}
                 onChange={(e) => handleFilterChange('type', e.target.value)}
-                className="w-full bg-slate-800/60 border border-slate-700/50 rounded-xl px-4 py-3.5 text-sm text-white appearance-none hover:border-slate-600 focus:border-indigo-500 transition-all outline-none"
+                className="w-full bg-slate-800/60 border border-slate-700/50 rounded-xl px-3 py-3 text-sm text-white appearance-none hover:border-slate-600 focus:border-indigo-500 transition-all outline-none"
               >
-                <option value="">All Types (Lost & Found)</option>
-                <option value="Lost">Lost Items</option>
-                <option value="Found">Found Items</option>
+                <option value="">All Types</option>
+                <option value="Lost">Lost</option>
+                <option value="Found">Found</option>
               </select>
             </div>
 
@@ -131,7 +136,7 @@ const SearchItems = () => {
               <select
                 value={filters.location}
                 onChange={(e) => handleFilterChange('location', e.target.value)}
-                className="w-full bg-slate-800/60 border border-slate-700/50 rounded-xl px-4 py-3.5 text-sm text-white appearance-none hover:border-slate-600 focus:border-indigo-500 transition-all outline-none"
+                className="w-full bg-slate-800/60 border border-slate-700/50 rounded-xl px-3 py-3 text-sm text-white appearance-none hover:border-slate-600 focus:border-indigo-500 transition-all outline-none"
               >
                 <option value="">All Locations</option>
                 {SLIIT_LOCATIONS.map(loc => (
@@ -139,8 +144,22 @@ const SearchItems = () => {
                 ))}
               </select>
             </div>
+
+            <div className="md:col-span-3">
+              <select
+                value={filters.category}
+                onChange={(e) => handleFilterChange('category', e.target.value)}
+                className="w-full bg-slate-800/60 border border-slate-700/50 rounded-xl px-3 py-3 text-sm text-white appearance-none hover:border-slate-600 focus:border-indigo-500 transition-all outline-none"
+              >
+                <option value="">All Categories</option>
+                {ITEM_CATEGORIES.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
           </form>
         </div>
+
 
         {/* Results Section */}
         {error && (
