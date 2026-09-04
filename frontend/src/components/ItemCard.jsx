@@ -1,7 +1,28 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { updateItemStatus } from '../api';
+import { MapPin, Calendar, CheckCircle, Package, Phone } from 'lucide-react';
 
-export default function ItemCard({ item }) {
+export default function ItemCard({ item, onStatusChange }) {
+  const [loading, setLoading] = useState(false);
   const isLost = item.type === 'Lost';
+  const isResolved = item.status !== 'Active';
+
+  const handleResolve = async () => {
+    if (!window.confirm(`Mark "${item.name}" as ${isLost ? 'Returned' : 'Claimed'}?`)) return;
+    setLoading(true);
+    try {
+      const newStatus = isLost ? 'Returned' : 'Claimed';
+      const updated = await updateItemStatus(item._id, newStatus);
+      if (onStatusChange) {
+        onStatusChange(updated);
+      }
+    } catch (err) {
+      alert('Could not update status. Try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const formattedDate = item.date
     ? new Date(item.date).toLocaleDateString(undefined, {
         year: 'numeric',
@@ -11,105 +32,69 @@ export default function ItemCard({ item }) {
     : '';
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow duration-200 p-5 flex flex-col justify-between">
-      <div>
-        {/* Top Badges */}
-        <div className="flex items-center justify-between gap-2 mb-3">
-          <div className="flex items-center gap-2">
-            <span
-              className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide uppercase ${
-                isLost
-                  ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                  : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-              }`}
-            >
+    <div className={`glass-card rounded-2xl overflow-hidden hover:-translate-y-1 transition-all duration-300 hover:border-indigo-500/30 group flex flex-col ${isResolved ? 'opacity-75' : ''}`}>
+      {/* Image or Placeholder */}
+      {item.imageUrl ? (
+        <div className="h-48 w-full overflow-hidden relative">
+          <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          <div className="absolute top-3 left-3 flex gap-2">
+            <span className={`px-3 py-1 rounded-full text-xs font-bold border ${isLost ? 'bg-red-500/90 text-white border-red-400' : 'bg-emerald-500/90 text-white border-emerald-400'} shadow-lg backdrop-blur-md`}>
               {item.type}
             </span>
-            {item.category && item.category !== 'Other' && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
-                {item.category}
-              </span>
-            )}
           </div>
+        </div>
+      ) : (
+        <div className={`h-48 w-full flex items-center justify-center relative ${isLost ? 'bg-red-500/10' : 'bg-emerald-500/10'}`}>
+          <Package size={48} className={isLost ? 'text-red-500/30' : 'text-emerald-500/30'} />
+          <div className="absolute top-3 left-3 flex gap-2">
+            <span className={`px-3 py-1 rounded-full text-xs font-bold border ${isLost ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'}`}>
+              {item.type}
+            </span>
+          </div>
+        </div>
+      )}
 
-          <span
-            className={`text-xs font-medium px-2 py-0.5 rounded ${
-              item.status === 'Active'
-                ? 'bg-blue-50 text-blue-700'
-                : 'bg-slate-100 text-slate-500'
-            }`}
-          >
+      <div className="p-6 flex-1 flex flex-col">
+        <div className="flex justify-between items-start mb-4">
+          <h3 className="text-xl font-bold text-white leading-tight line-clamp-2">{item.name}</h3>
+          <span className={`shrink-0 ml-3 px-2.5 py-1 rounded-md text-[10px] uppercase font-bold tracking-wider border ${isResolved ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border-amber-500/30'}`}>
             {item.status}
           </span>
         </div>
 
-        {/* Item Title */}
-        <h3 className="text-lg font-bold text-slate-900 tracking-tight mb-2">
-          {item.name}
-        </h3>
+        <p className="text-slate-400 text-sm mb-6 line-clamp-3 flex-1">{item.description}</p>
 
-        {/* Location & Date */}
-        <div className="space-y-1.5 text-xs text-slate-500 mb-3">
-          <div className="flex items-center gap-1.5">
-            <svg
-              className="w-4 h-4 text-slate-400 flex-shrink-0"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-            </svg>
+        <div className="space-y-2 mb-6 text-sm text-slate-300 bg-slate-900/40 p-4 rounded-xl">
+          <div className="flex items-center gap-2">
+            <MapPin size={16} className="text-indigo-400" />
             <span className="truncate">{item.location}</span>
           </div>
-
           {formattedDate && (
-            <div className="flex items-center gap-1.5">
-              <svg
-                className="w-4 h-4 text-slate-400 flex-shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
+            <div className="flex items-center gap-2">
+              <Calendar size={16} className="text-indigo-400" />
               <span>{formattedDate}</span>
+            </div>
+          )}
+          {item.contactInfo && (
+            <div className="flex items-center gap-2">
+              <Phone size={16} className="text-indigo-400" />
+              <span className="truncate">{item.contactInfo}</span>
             </div>
           )}
         </div>
 
-        {/* Description */}
-        {item.description && (
-          <p className="text-sm text-slate-600 line-clamp-3 mb-4 leading-relaxed">
-            {item.description}
-          </p>
+        {!isResolved && (
+          <button 
+            onClick={handleResolve}
+            disabled={loading}
+            className="w-full py-2.5 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-white transition-colors flex items-center justify-center gap-2 border border-slate-700 hover:border-slate-600 disabled:opacity-50"
+          >
+            <CheckCircle size={16} />
+            {loading ? 'Updating...' : `Mark as ${isLost ? 'Returned' : 'Claimed'}`}
+          </button>
         )}
       </div>
-
-      {/* Contact Footer */}
-      {item.contactInfo && (
-        <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-          <span className="font-medium text-slate-400">Contact:</span>
-          <span className="font-medium text-slate-700 truncate max-w-[200px]">
-            {item.contactInfo}
-          </span>
-        </div>
-      )}
     </div>
   );
 }
+

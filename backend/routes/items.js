@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
     if (type) query.type = type;
     if (location) query.location = location;
     if (category) query.category = category;
-    if (search) {
+    if (search && search.trim() !== '') {
       const pattern = escapeRegex(search.trim());
       query.$or = [
         { name: { $regex: pattern, $options: 'i' } },
@@ -40,9 +40,15 @@ router.post('/', async (req, res) => {
 
 router.patch('/:id/status', async (req, res) => {
   try {
+    const { status } = req.body;
+    const allowedStatuses = ['Active', 'Claimed', 'Returned', 'Claimed/Returned'];
+    if (!status || !allowedStatuses.includes(status)) {
+      return res.status(400).json({ message: 'Invalid status value' });
+    }
+
     const item = await Item.findByIdAndUpdate(
       req.params.id,
-      { status: req.body.status },
+      { status },
       { new: true, runValidators: true }
     );
     if (!item) return res.status(404).json({ message: 'Item not found' });
@@ -53,3 +59,4 @@ router.patch('/:id/status', async (req, res) => {
 });
 
 module.exports = router;
+
