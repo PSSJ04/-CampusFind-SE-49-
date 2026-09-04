@@ -9,9 +9,7 @@ const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 
 // Middleware
 app.use(express.json());
-app.use(cors({
-  origin: CLIENT_URL,
-}));
+app.use(cors()); // Allow all origins for dev
 
 // Routes
 app.use('/api/items', require('./routes/itemRoutes'));
