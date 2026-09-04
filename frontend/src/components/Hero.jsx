@@ -4,7 +4,7 @@ import { PlusCircle, Search, AlertTriangle, MapPin, Shield } from 'lucide-react'
 
 const Hero = () => {
   return (
-    <div className="hero-gradient min-h-screen flex flex-col justify-center relative overflow-hidden">
+    <div className="hero-gradient min-h-screen flex flex-col justify-center relative overflow-x-hidden">
       {/* Decorative floating elements */}
       <div className="absolute top-20 left-10 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl animate-pulse-slow" />
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '2s' }} />
