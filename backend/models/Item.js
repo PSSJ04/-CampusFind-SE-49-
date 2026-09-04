@@ -1,53 +1,51 @@
 const mongoose = require('mongoose');
 
-const itemSchema = new mongoose.Schema(
-  {
-    type: {
-      type: String,
-      enum: ['Lost', 'Found'],
-      required: true,
-    },
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-      index: true,
-    },
-    location: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    category: {
-      type: String,
-      default: 'Other',
-      trim: true,
-    },
-    date: {
-      type: Date,
-      default: Date.now,
-    },
-    description: {
-      type: String,
-      trim: true,
-    },
-    contactInfo: {
-      type: String,
-      trim: true,
-    },
-    imageUrl: {
-      type: String,
-      default: '',
-    },
-    status: {
-      type: String,
-      enum: ['Active', 'Claimed/Returned'],
-      default: 'Active',
-    },
+const itemSchema = new mongoose.Schema({
+  type: {
+    type: String,
+    required: [true, 'Please specify if the item is Lost or Found'],
+    enum: ['Lost', 'Found'],
   },
-  {
-    timestamps: true,
-  }
-);
+  name: {
+    type: String,
+    required: [true, 'Please provide the name of the item'],
+    trim: true,
+    index: true,
+  },
+  location: {
+    type: String,
+    required: [true, 'Please specify the location'],
+    trim: true,
+  },
+  category: {
+    type: String,
+    default: 'Other',
+    trim: true,
+  },
+  date: {
+    type: Date,
+    required: [true, 'Please provide the date it was lost or found'],
+    default: Date.now,
+  },
+  description: {
+    type: String,
+    required: [true, 'Please provide a description of the item'],
+    trim: true,
+  },
+  contactInfo: {
+    type: String,
+    required: [true, 'Please provide contact information'],
+    trim: true,
+  },
+  imageUrl: {
+    type: String,
+    default: '',
+  },
+  status: {
+    type: String,
+    default: 'Active',
+    enum: ['Active', 'Claimed', 'Returned', 'Claimed/Returned'],
+  },
+}, { timestamps: true });
 
 module.exports = mongoose.model('Item', itemSchema);
