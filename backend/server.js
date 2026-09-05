@@ -33,7 +33,10 @@ const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 
 // Middleware
 app.use(express.json());
-app.use(cors()); // Allow all origins for dev
+app.use(cors({
+  origin: ['https://classy-starburst-c63921.netlify.app', 'http://localhost:5173'],
+  credentials: true
+}));
 
 // Routes
 app.use('/api/items', require('./routes/itemRoutes'));

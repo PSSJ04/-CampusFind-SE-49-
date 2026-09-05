@@ -1,5 +1,5 @@
 // frontend/src/api/items.js
-const BASE_URL = 'http://localhost:5000/api/items'; // adjust to your backend URL
+const BASE_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/items` : 'http://localhost:5000/api/items';
 
 export async function fetchItems(params = {}) {
   const query = new URLSearchParams(params).toString();
