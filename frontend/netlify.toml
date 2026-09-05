@@ -1,0 +1,13 @@
+[build]
+  base = ".."
+  publish = "frontend/dist"
+  command = "cd frontend && npm install && npm run build"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[build.environment]
+  VITE_API_URL = "https://campusfind-se-49-production.up.railway.app/api"
